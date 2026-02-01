@@ -23,10 +23,10 @@ export async function registerRoutes(
   });
 
   // EMQX Webhook
-  // Use text parser fallback if JSON fails or if content-type is text/plain
+  // Accept any content type - JSON, text, binary, raw
   app.post(
     api.emqx.receive.path, 
-    express.text({ type: ['text/*', 'application/octet-stream'] }),
+    express.raw({ type: '*/*', limit: '10mb' }),
     async (req: Request, res) => {
     
     console.log("Received EMQX webhook headers:", JSON.stringify(req.headers));
@@ -46,29 +46,36 @@ export async function registerRoutes(
     // 2. Message Handling
     try {
       let messageData;
+      let rawBody = req.body;
 
-      // Check if body is already parsed JSON (by global middleware)
-      if (typeof req.body === 'object' && req.body !== null && Object.keys(req.body).length > 0) {
-        messageData = req.body;
-      } else if (typeof req.body === 'string') {
-        // Try parsing string body as JSON
+      // Convert Buffer to string if needed
+      if (Buffer.isBuffer(rawBody)) {
+        rawBody = rawBody.toString('utf-8');
+        console.log("Converted buffer to string:", rawBody);
+      }
+
+      // Try to parse as JSON first (EMQX might wrap payload in JSON envelope)
+      if (typeof rawBody === 'string' && rawBody.trim().startsWith('{')) {
         try {
-          messageData = JSON.parse(req.body);
+          messageData = JSON.parse(rawBody);
         } catch (e) {
-          // If not JSON, it might be raw payload or the STM32 frame directly if configured that way
-          // Construct a message object assuming the body is the payload
-          // But we need the topic! 
-          // If EMQX sends raw body, it usually sends metadata in headers? 
-          // Or maybe this IS the payload field of a JSON wrapper that failed to parse?
-          // Let's assume for now if it fails JSON parse, treat body as payload and try to extract topic from headers or default.
-           messageData = {
-            topic: req.headers['x-mqtt-topic'] || 'unknown/topic',
-            payload: req.body,
-            timestamp: Date.now()
-          };
+          // Not valid JSON, treat as raw payload
+          messageData = null;
         }
-      } else {
-        throw new Error("Empty or invalid body format");
+      }
+
+      // If not JSON, construct message from headers + raw body
+      if (!messageData) {
+        // EMQX can send topic in headers when using raw mode
+        const topic = req.headers['x-mqtt-topic'] as string || 
+                      req.headers['x-emqx-topic'] as string || 
+                      'blade/unknown/raw';
+        
+        messageData = {
+          topic: topic,
+          payload: rawBody, // Raw STM32 frame as string or hex
+          timestamp: Date.now()
+        };
       }
 
       // Validate/Shape
