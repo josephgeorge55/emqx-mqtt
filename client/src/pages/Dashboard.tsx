@@ -2,7 +2,8 @@ import { useSystemStatus, useLogs } from "@/hooks/use-dashboard";
 import { StatusCard } from "@/components/StatusCard";
 import { LogViewer } from "@/components/LogViewer";
 import { motion } from "framer-motion";
-import { RadioTower, RefreshCw } from "lucide-react";
+import { Anchor, Shield } from "lucide-react";
+import { format } from "date-fns";
 
 export default function Dashboard() {
   const { data: status, isLoading: statusLoading } = useSystemStatus();
@@ -22,11 +23,11 @@ export default function Dashboard() {
               className="flex items-center gap-3"
             >
               <div className="p-3 bg-primary/10 rounded-xl text-primary">
-                <RadioTower className="w-8 h-8" />
+                <Anchor className="w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">MQTT Receiver</h1>
-                <p className="text-muted-foreground">Real-time webhook processing & storage</p>
+                <h1 className="text-3xl font-bold tracking-tight">BLADE OUTBOARDS</h1>
+                <p className="text-muted-foreground">Blade Marine Technologies Limited</p>
               </div>
             </motion.div>
           </div>
@@ -79,10 +80,7 @@ export default function Dashboard() {
           {/* Left Column: Logs */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Incoming Webhooks</h2>
-              {/* <button className="p-2 hover:bg-muted rounded-full transition-colors">
-                <RefreshCw className="w-4 h-4 text-muted-foreground" />
-              </button> */}
+              <h2 className="text-xl font-semibold">Incoming Telemetry</h2>
             </div>
             <LogViewer logs={logs} isLoading={logsLoading} />
           </div>
@@ -126,6 +124,29 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Security Notice */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="bg-rose-500/5 rounded-xl border border-rose-500/20 p-6"
+        >
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-rose-500/10 rounded-lg">
+              <Shield className="w-5 h-5 text-rose-500" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-rose-500">Security Notice</h3>
+              <p className="text-xs text-rose-500/80 leading-relaxed">
+                This system is the property of Blade Marine Technologies Limited. Unauthorized access, use, modification, or attempted modification of this system or its data is strictly prohibited. All access attempts are monitored, logged, and recorded. Any unauthorized access or breach will be fully investigated and prosecuted to the maximum extent permitted by law.
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                &copy; {new Date().getFullYear()} Blade Marine Technologies Limited. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
