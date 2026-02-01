@@ -18,10 +18,11 @@ export type InsertLog = z.infer<typeof insertLogSchema>;
 export type Log = typeof logs.$inferSelect;
 
 // MQTT Message Schema based on requirements
+// Payload can be JSON object OR string (for STM32 compact frames)
 export const mqttMessageSchema = z.object({
   topic: z.string(),
-  payload: z.record(z.any()),
-  timestamp: z.number(),
+  payload: z.union([z.record(z.any()), z.string(), z.any()]), 
+  timestamp: z.number().optional(), // EMQX might not send it in raw mode, but usually does in webhook
 });
 
 export type MqttMessage = z.infer<typeof mqttMessageSchema>;
