@@ -10,7 +10,7 @@ export function useSystemStatus() {
       if (!res.ok) throw new Error("Failed to fetch status");
       return api.health.check.responses[200].parse(await res.json());
     },
-    refetchInterval: 10000, // Check health every 10s
+    refetchInterval: 10000,
   });
 }
 
@@ -24,6 +24,19 @@ export function useLogs() {
       const data = await res.json();
       return api.logs.list.responses[200].parse(data);
     },
-    refetchInterval: 5000, // Poll logs every 5s
+    refetchInterval: 5000,
+  });
+}
+
+// GET /api/telemetry
+export function useTelemetry() {
+  return useQuery({
+    queryKey: [api.telemetry.list.path],
+    queryFn: async () => {
+      const res = await fetch(api.telemetry.list.path);
+      if (!res.ok) throw new Error("Failed to fetch telemetry");
+      return res.json();
+    },
+    refetchInterval: 3000,
   });
 }
