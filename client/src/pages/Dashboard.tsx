@@ -14,7 +14,7 @@ export default function Dashboard() {
   const isSystemHealthy = status?.status === "alive";
   
   const totalReceived = logs?.length || 0;
-  const successCount = logs?.filter((l: any) => l.status === 'success').length || 0;
+  const gnssCount = telemetry?.length || 0;
   const errorCount = logs?.filter((l: any) => l.status === 'failure').length || 0;
 
   return (
@@ -57,11 +57,11 @@ export default function Dashboard() {
             details="Total webhook messages"
           />
           <StatusCard
-            title="Successfully Parsed"
-            value={successCount.toString()}
+            title="GNSS Records"
+            value={gnssCount.toString()}
             status="healthy"
             icon="check"
-            details="Valid GNSS messages"
+            details="Stored in database"
           />
           <StatusCard
             title="Errors"
