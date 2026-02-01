@@ -1,6 +1,7 @@
-import { useSystemStatus, useTelemetry } from "@/hooks/use-dashboard";
+import { useSystemStatus, useTelemetry, useLogs } from "@/hooks/use-dashboard";
 import { StatusCard } from "@/components/StatusCard";
 import { TelemetryViewer } from "@/components/TelemetryViewer";
+import { LogViewer } from "@/components/LogViewer";
 import { motion } from "framer-motion";
 import { Anchor, Shield } from "lucide-react";
 import { format } from "date-fns";
@@ -8,8 +9,13 @@ import { format } from "date-fns";
 export default function Dashboard() {
   const { data: status, isLoading: statusLoading } = useSystemStatus();
   const { data: telemetry, isLoading: telemetryLoading } = useTelemetry();
+  const { data: logs, isLoading: logsLoading } = useLogs();
 
   const isSystemHealthy = status?.status === "alive";
+  
+  const totalReceived = logs?.length || 0;
+  const successCount = logs?.filter((l: any) => l.status === 'success').length || 0;
+  const errorCount = logs?.filter((l: any) => l.status === 'failure').length || 0;
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-12">
@@ -44,18 +50,25 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatusCard
-            title="Service Status"
-            value={isSystemHealthy ? "Active" : "Down"}
-            status={isSystemHealthy ? "healthy" : "error"}
-            icon="activity"
-            details="Webhook endpoint listener"
+            title="Messages Received"
+            value={totalReceived.toString()}
+            status="healthy"
+            icon="inbox"
+            details="Total webhook messages"
           />
           <StatusCard
-            title="Devices Tracked"
-            value={telemetry ? telemetry.length.toString() : "0"}
+            title="Successfully Parsed"
+            value={successCount.toString()}
             status="healthy"
-            icon="database"
-            details="GNSS telemetry records"
+            icon="check"
+            details="Valid GNSS messages"
+          />
+          <StatusCard
+            title="Errors"
+            value={errorCount.toString()}
+            status={errorCount > 0 ? "error" : "healthy"}
+            icon="error"
+            details="Failed to parse/store"
           />
           <StatusCard
             title="Last Update"
@@ -64,20 +77,24 @@ export default function Dashboard() {
             icon="wifi"
             details="Latest telemetry received"
           />
-          <StatusCard
-            title="Environment"
-            value="Production"
-            status="healthy"
-            icon="server"
-            details="Node.js + PostgreSQL"
-          />
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Live Telemetry</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">GNSS Telemetry</h2>
+              <span className="text-xs text-muted-foreground">{telemetry?.length || 0} records</span>
+            </div>
+            <TelemetryViewer data={telemetry} isLoading={telemetryLoading} />
           </div>
-          <TelemetryViewer data={telemetry} isLoading={telemetryLoading} />
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Message Log</h2>
+              <span className="text-xs text-muted-foreground">{logs?.length || 0} messages</span>
+            </div>
+            <LogViewer logs={logs} isLoading={logsLoading} />
+          </div>
         </div>
 
         <motion.div 

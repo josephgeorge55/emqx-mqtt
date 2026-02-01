@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import { Activity, Server, Database, Wifi } from "lucide-react";
+import { Activity, Server, Database, Wifi, CheckCircle, XCircle, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface StatusCardProps {
   title: string;
   value: string;
   status: "healthy" | "warning" | "error";
-  icon: "activity" | "server" | "database" | "wifi";
+  icon: "activity" | "server" | "database" | "wifi" | "check" | "error" | "inbox";
   details?: string;
 }
 
@@ -15,6 +15,9 @@ const icons = {
   server: Server,
   database: Database,
   wifi: Wifi,
+  check: CheckCircle,
+  error: XCircle,
+  inbox: Inbox,
 };
 
 export function StatusCard({ title, value, status, icon, details }: StatusCardProps) {
